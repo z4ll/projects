@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Table</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        h1 {
+            color: #0056b3;
+        }
+        h2 {
+            margin-top: -10px;
+            font-size: 36px; /* Membuat ukuran lebih besar */
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: bold;
+            background: linear-gradient(to right, #ffcc5c, #ff8c00);
+            display: inline-block;
+            padding: 10px 20px; /* Memperbesar padding untuk memberi ruang */
+            border-radius: 10px;
+            color: #fff;
+            text-align: center;
+            text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.2); /* Menambahkan bayangan teks */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: color 0.3s, transform 0.3s;
+        }
+        h2:hover {
+            color: #ff8c00; /* Mengubah warna teks saat hover */
+            transform: scale(1.1); /* Efek zoom saat hover */
+        }
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #aaa;
+        }
+        th, td {
+            padding: 15px;
+            text-align: center;
+            background-color: #fff;
+        }
+        th {
+            background-color: #ffcc5c;
+            color: #333;
+        }
+        .btn {
+            margin-top: 20px;
+            text-decoration: none;
+            background-color: #0056b3;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #004494;
+        }
+        .back-btn {
+            margin-top: 20px;
+            text-decoration: none;
+            background-color: #0056b3;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            transition: background-color 0.3s;
+        }
+        .back-btn:hover {
+            background-color: #004494;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SCHOOL ACTIVITY SCHEDULING</h1>
+        <h2>Monday</h2>
+        <table id="scheduleTable">
+            <tr>
+                <th>Time</th>
+                <th>Date</th>
+                <th>Activity</th>
+            </tr>
+            <tr>
+                <td>08:00 - 09:00</td>
+                <td id="date-1"></td>
+                <td id="slot-1"></td>
+            </tr>
+            <tr>
+                <td>09:00 - 10:00</td>
+                <td id="date-2"></td>
+                <td id="slot-2"></td>
+            </tr>
+            <tr>
+                <td>10:00 - 11:00</td>
+                <td id="date-3"></td>
+                <td id="slot-3"></td>
+            </tr>
+            <tr>
+                <td>11:00 - 12:00</td>
+                <td id="date-4"></td>
+                <td id="slot-4"></td>
+            </tr>
+        </table>
+        <button class="btn" onclick="addActivity()">Add Activity</button>
+        <a href="index.html" class="back-btn">Back</a>
+    </div>
+    <script>
+        // Load saved activities from localStorage
+        function loadActivities() {
+            const rows = document.querySelectorAll("#scheduleTable tr");
+            rows.forEach((row, index) => {
+                if (index === 0) return; // Skip header row
+                const timeSlot = row.cells[0].textContent.trim();
+                const dateCell = row.cells[1];
+                const activityCell = row.cells[2];
+                
+                const savedActivity = localStorage.getItem(timeSlot);
+                if (savedActivity) {
+                    const { date, activity } = JSON.parse(savedActivity);
+                    dateCell.textContent = date;
+                    activityCell.textContent = activity;
+                }
+            });
+        }
+
+        // Add a new activity
+        function addActivity() {
+            const timeSlot = prompt("Enter the time slot (e.g., 08:00 - 09:00):").trim();
+            const date = prompt("Enter the date (e.g., 2024-12-25):").trim();
+            const activity = prompt("Enter the activity name:").trim();
+
+            if (!timeSlot || !activity || !date) {
+                alert("All fields (time slot, date, and activity) are required.");
+                return;
+            }
+
+            const rows = document.querySelectorAll("#scheduleTable tr");
+            let added = false;
+
+            rows.forEach(row => {
+                const timeCell = row.cells[0];
+                if (timeCell && timeCell.textContent.trim() === timeSlot) {
+                    const dateCell = row.cells[1];
+                    const activityCell = row.cells[2];
+                    dateCell.textContent = date;
+                    activityCell.textContent = activity;
+
+                    // Save to localStorage
+                    localStorage.setItem(timeSlot, JSON.stringify({ date, activity }));
+
+                    alert(`Activity "${activity}" added to ${timeSlot} on ${date}`);
+                    added = true;
+
+                    // Set reminder
+                    const reminderTime = new Date(`${date}T${timeSlot.split(" - ")[0]}:00`);
+                    const now = new Date();
+                    const timeUntilReminder = reminderTime - now;
+
+                    if (timeUntilReminder > 0) {
+                        setTimeout(() => {
+                            alert(`Reminder: It's time for "${activity}" at ${timeSlot}`);
+                        }, timeUntilReminder);
+                    } else {
+                        alert("The time for this activity has already passed.");
+                    }
+                }
+            });
+
+            if (!added) {
+                alert("Invalid time slot! Please enter a valid time slot from the table.");
+            }
+        }
+
+        // Load activities when the page loads
+        window.onload = loadActivities;
+    </script>
+</body>
+</html>
